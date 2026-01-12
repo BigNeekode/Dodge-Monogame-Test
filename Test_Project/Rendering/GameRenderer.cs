@@ -17,19 +17,28 @@ public class GameRenderer
     private readonly SpriteBatch _spriteBatch;
     private readonly Texture2D _pixel;
     private readonly GraphicsDeviceManager _graphics;
+    private readonly SpriteFont _font;
     private readonly Color[] _discoPalette;
     
     private float _discoTimer;
     private bool _discoActive;
 
-    public GameRenderer(SpriteBatch spriteBatch, Texture2D pixel, GraphicsDeviceManager graphics)
+    public GameRenderer(SpriteBatch spriteBatch, Texture2D pixel, GraphicsDeviceManager graphics, SpriteFont font)
     {
         _spriteBatch = spriteBatch;
         _pixel = pixel;
         _graphics = graphics;
+        _font = font;
+        // Softer, more muted colors for epilepsy safety
         _discoPalette = [
-            Color.HotPink, Color.Cyan, Color.Yellow, Color.Lime,
-            Color.Magenta, Color.Orange, Color.Purple, Color.DeepSkyBlue
+            new Color(255, 182, 193),  // Light Pink
+            new Color(135, 206, 235),  // Light Sky Blue
+            new Color(255, 255, 153),  // Light Yellow
+            new Color(144, 238, 144),  // Light Green
+            new Color(221, 160, 221),  // Plum
+            new Color(255, 218, 185),  // Peach Puff
+            new Color(176, 196, 222),  // Light Steel Blue
+            new Color(173, 216, 230)   // Light Blue
         ];
     }
 
@@ -95,7 +104,7 @@ public class GameRenderer
         // Draw rubber chickens
         foreach (var chicken in chickens)
         {
-            _spriteBatch.Draw(_pixel, chicken.Rect, Color.Peru);
+            _spriteBatch.Draw(_pixel, chicken.Rect, Color.Orchid);
         }
 
         // Draw obstacles
@@ -126,18 +135,26 @@ public class GameRenderer
             _graphics.PreferredBackBufferWidth, 6);
         _spriteBatch.Draw(_pixel, floorRect, floorCol);
 
-        // Draw score popups (simple rectangles as text substitute)
+        // Draw score popups with actual text
         foreach (var popup in scorePopupSystem.Popups)
         {
             var alpha = Math.Clamp(popup.Life / 1.5f, 0f, 1f);
-            var size = popup.Text.Contains("COMBO") ? 40 : 20;
-            var width = popup.Text.Length * 6;
-            var rect = new Rectangle((int)popup.Position.X - width/2, (int)popup.Position.Y, width, size);
-            _spriteBatch.Draw(_pixel, rect, popup.Color * alpha);
+            var textMeasure = _font.MeasureString(popup.Text);
+            var pos = new Vector2(popup.Position.X - textMeasure.X / 2, popup.Position.Y);
+            
+            // Scale the text
+            var scale = popup.Text.Contains("COMBO") ? GameConfig.FontScaleCombo : GameConfig.FontScaleLarge;
+            _spriteBatch.DrawString(_font, popup.Text, pos, popup.Color * alpha, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
         }
 
         // Draw HUD
         DrawHUD(player, powerUpManager, comboSystem);
+
+        // Draw instructions (only when not game over)
+        if (!isGameOver)
+        {
+            DrawInstructions();
+        }
 
         // Draw game over overlay
         if (isGameOver)
@@ -149,7 +166,7 @@ public class GameRenderer
     }
 
     /// <summary>
-    /// Draws the HUD (lives, shield bar, combo, dash)
+    /// Draws the HUD (lives, shield bar, combo, dash, power-ups)
     /// </summary>
     private void DrawHUD(Player player, PowerUpManager powerUpManager, Systems.ComboSystem comboSystem)
     {
@@ -161,7 +178,7 @@ public class GameRenderer
             _spriteBatch.Draw(_pixel, rect, color);
         }
 
-        // Draw shield indicator
+        // Draw shield indicator with text
         if (powerUpManager.ShieldActive)
         {
             var shieldTimer = powerUpManager.GetShieldTimer();
@@ -169,9 +186,12 @@ public class GameRenderer
                 (int)(Math.Max(0, shieldTimer) / GameConfig.ShieldDuration * 120), 8);
             _spriteBatch.Draw(_pixel, new Rectangle(10, 34, 120, 8), Color.DarkSlateGray);
             _spriteBatch.Draw(_pixel, shieldBar, Color.LightSkyBlue);
+            
+            var shieldText = $"SHIELD: {shieldTimer:F1}s";
+            _spriteBatch.DrawString(_font, shieldText, new Vector2(135, 30), Color.LightSkyBlue, 0f, Vector2.Zero, GameConfig.FontScaleMedium, SpriteEffects.None, 0f);
         }
 
-        // Draw combo meter
+        // Draw combo meter with text
         if (comboSystem.HasCombo)
         {
             var comboPercent = comboSystem.GetComboTimePercent();
@@ -179,16 +199,43 @@ public class GameRenderer
             _spriteBatch.Draw(_pixel, new Rectangle(10, 48, 120, 6), Color.DarkGray);
             _spriteBatch.Draw(_pixel, comboBar, Color.Orange);
             
-            // Combo count indicator
-            var comboBox = new Rectangle(135, 48, 12, 6);
-            _spriteBatch.Draw(_pixel, comboBox, Color.Orange);
+            var comboText = $"COMBO: {comboSystem.ComboCount}x (x{comboSystem.ComboMultiplier})";
+            _spriteBatch.DrawString(_font, comboText, new Vector2(135, 44), Color.Orange, 0f, Vector2.Zero, GameConfig.FontScaleMedium, SpriteEffects.None, 0f);
         }
 
-        // Draw dash cooldown
+        // Draw dash cooldown with text
         var dashPercent = player.GetDashCooldownPercent();
         var dashBar = new Rectangle(10, 60, (int)(dashPercent * 120), 6);
         _spriteBatch.Draw(_pixel, new Rectangle(10, 60, 120, 6), Color.DarkSlateGray);
         _spriteBatch.Draw(_pixel, dashBar, Color.Cyan);
+        
+        var dashText = dashPercent >= 1f ? "DASH READY" : $"DASH: {dashPercent:P0}";
+        var dashColor = dashPercent >= 1f ? Color.Cyan : Color.Gray;
+        _spriteBatch.DrawString(_font, dashText, new Vector2(135, 56), dashColor, 0f, Vector2.Zero, GameConfig.FontScaleMedium, SpriteEffects.None, 0f);
+
+        // Draw active power-up status
+        var powerUpY = 72f;
+        if (powerUpManager.RubberChickenActive)
+        {
+            _spriteBatch.DrawString(_font, "RUBBER CHICKEN ACTIVE!", new Vector2(10, powerUpY), Color.Peru, 0f, Vector2.Zero, GameConfig.FontScaleLarge, SpriteEffects.None, 0f);
+            powerUpY += 16f;
+        }
+        if (powerUpManager.SpeedMultiplier < 1f)
+        {
+            _spriteBatch.DrawString(_font, "SLOW MOTION", new Vector2(10, powerUpY), Color.CornflowerBlue, 0f, Vector2.Zero, GameConfig.FontScaleLarge, SpriteEffects.None, 0f);
+        }
+    }
+
+    /// <summary>
+    /// Draws game instructions at the bottom of the screen
+    /// </summary>
+    private void DrawInstructions()
+    {
+        var yPos = _graphics.PreferredBackBufferHeight - 20;
+        var controls = "Arrows/A+D: Move | Space/Up: Shoot | Shift+Dir: Dash | G: Disco | Esc: Quit";
+        var size = _font.MeasureString(controls);
+        var pos = new Vector2(_graphics.PreferredBackBufferWidth / 2 - size.X / 2, yPos);
+        _spriteBatch.DrawString(_font, controls, pos, Color.White * 0.7f, 0f, Vector2.Zero, GameConfig.FontScaleSmall, SpriteEffects.None, 0f);
     }
 
     /// <summary>
@@ -207,13 +254,25 @@ public class GameRenderer
             320, 120);
         _spriteBatch.Draw(_pixel, box, Color.DarkRed * 0.9f);
         
-        // Simple text substitute: draw white boxes
-        _spriteBatch.Draw(_pixel, 
-            new Rectangle(box.X + 10, box.Y + 12, box.Width - 20, 18), 
-            Color.White);
-        _spriteBatch.Draw(_pixel, 
-            new Rectangle(box.X + 10, box.Y + 36, box.Width - 20, 18), 
-            Color.White);
+        // Draw text
+        var gameOverText = "GAME OVER";
+        var restartText = "Press R to Restart";
+        
+        var gameOverSize = _font.MeasureString(gameOverText);
+        var restartSize = _font.MeasureString(restartText);
+        
+        var gameOverPos = new Vector2(
+            box.X + box.Width / 2 - gameOverSize.X / 2,
+            box.Y + 15
+        );
+        
+        var restartPos = new Vector2(
+            box.X + box.Width / 2 - restartSize.X / 2,
+            box.Y + 50
+        );
+        
+        _spriteBatch.DrawString(_font, gameOverText, gameOverPos, Color.White, 0f, Vector2.Zero, GameConfig.FontScaleCombo, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(_font, restartText, restartPos, Color.White, 0f, Vector2.Zero, GameConfig.FontScaleMedium, SpriteEffects.None, 0f);
     }
 
     /// <summary>
@@ -223,13 +282,25 @@ public class GameRenderer
     {
         if (_discoActive)
         {
-            var idx = (int)(_discoTimer * 6) % _discoPalette.Length;
-            return (
-                _discoPalette[idx],
-                _discoPalette[(idx + 2) % _discoPalette.Length],
-                _discoPalette[(idx + 4) % _discoPalette.Length],
-                _discoPalette[(idx + 6) % _discoPalette.Length]
-            );
+            // Use smooth color transitions instead of instant jumps
+            var smoothTimer = _discoTimer * GameConfig.DiscoColorTransitionSpeed;
+            var idx = (int)smoothTimer % _discoPalette.Length;
+            var nextIdx = (idx + 1) % _discoPalette.Length;
+            var blend = smoothTimer - (int)smoothTimer; // 0 to 1 for smooth blending
+            
+            // Blend between current and next color for smoothness
+            var bg = Color.Lerp(_discoPalette[idx], _discoPalette[nextIdx], blend);
+            var player = Color.Lerp(_discoPalette[(idx + 2) % _discoPalette.Length], _discoPalette[(idx + 3) % _discoPalette.Length], blend);
+            var obstacle = Color.Lerp(_discoPalette[(idx + 4) % _discoPalette.Length], _discoPalette[(idx + 5) % _discoPalette.Length], blend);
+            var floor = Color.Lerp(_discoPalette[(idx + 6) % _discoPalette.Length], _discoPalette[(idx + 7) % _discoPalette.Length], blend);
+            
+            // Reduce brightness/saturation for epilepsy safety
+            bg = Color.Lerp(bg, Color.Gray, 0.3f);
+            player = Color.Lerp(player, Color.Gray, 0.2f);
+            obstacle = Color.Lerp(obstacle, Color.Gray, 0.2f);
+            floor = Color.Lerp(floor, Color.Gray, 0.3f);
+            
+            return (bg, player, obstacle, floor);
         }
 
         var playerColor = isDashing ? Color.Cyan : (shieldActive ? Color.LightSkyBlue : Color.LimeGreen);

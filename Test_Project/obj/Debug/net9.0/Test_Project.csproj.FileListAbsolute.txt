@@ -31,3 +31,38 @@ D:\Project Gabut\Project Mono\Test_Project\Test_Project\obj\Debug\net9.0\refint\
 D:\Project Gabut\Project Mono\Test_Project\Test_Project\obj\Debug\net9.0\Test_Project.pdb
 D:\Project Gabut\Project Mono\Test_Project\Test_Project\obj\Debug\net9.0\Test_Project.genruntimeconfig.cache
 D:\Project Gabut\Project Mono\Test_Project\Test_Project\obj\Debug\net9.0\ref\Test_Project.dll
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Test_Project.exe
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Test_Project.deps.json
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Test_Project.runtimeconfig.json
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Test_Project.dll
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Test_Project.pdb
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\MonoGame.Framework.dll
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\NVorbis.dll
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\android-arm\native\libopenal.so
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\android-arm64\native\libopenal.so
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\android-x64\native\libopenal.so
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\android-x86\native\libopenal.so
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\ios-arm64\native\libopenal.a
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\iossimulator-arm64\native\libopenal.a
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\iossimulator-x64\native\libopenal.a
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\linux-arm64\native\libopenal.so
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\linux-x64\native\libopenal.so
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\osx\native\libopenal.dylib
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\win-x64\native\openal.dll
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\linux-x64\native\libSDL2-2.0.so.0
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\osx\native\libSDL2-2.0.0.dylib
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\runtimes\win-x64\native\SDL2.dll
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\mgcb.tool.restore
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.csproj.AssemblyReference.cache
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.GeneratedMSBuildEditorConfig.editorconfig
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.AssemblyInfoInputs.cache
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.AssemblyInfo.cs
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.csproj.CoreCompileInputs.cache
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.sourcelink.json
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Pro.D7C6EBED.Up2Date
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.dll
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\refint\Test_Project.dll
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.pdb
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.genruntimeconfig.cache
+C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\ref\Test_Project.dll
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Content\font.xnb

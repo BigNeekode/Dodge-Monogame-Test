@@ -45,8 +45,15 @@ public static class GameConfig
     public const int RubberChickenBounces = 4;
 
     // Disco mode settings
-    public const float DiscoSpeedMultiplier = 1.6f;
+    public const float DiscoSpeedMultiplier = 0.3f; // Much slower for epilepsy safety
+    public const float DiscoColorTransitionSpeed = 0.5f; // Smooth color transitions
 
     // Scoring
     public const int PointsPerKill = 10;
+    
+    // Font settings
+    public const float FontScaleSmall = 0.6f;
+    public const float FontScaleMedium = 0.7f;
+    public const float FontScaleLarge = 0.8f;
+    public const float FontScaleCombo = 1.2f;
 }

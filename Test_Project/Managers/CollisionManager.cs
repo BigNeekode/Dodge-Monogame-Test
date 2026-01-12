@@ -68,14 +68,19 @@ public class CollisionManager
                     _particleSystem.SpawnConfetti(
                         new Vector2(chicken.Rect.Center.X, chicken.Rect.Center.Y), 
                         24, _rand);
-                    
-                    // Bounce the chicken
-                    chicken.Vel = new Vector2(chicken.Vel.X, -Math.Abs(chicken.Vel.Y) * 0.6f);
+
+                    // Bounce the chicken and nudge X velocity for variety
+                    var newVelX = chicken.Vel.X + (float)(_rand.NextDouble() * 60.0 - 30.0);
+                    chicken.Vel = new Vector2(newVelX * 0.9f, -Math.Abs(chicken.Vel.Y) * 0.6f);
+
+                    // Reposition chicken above obstacle to avoid sticking
+                    chicken.Rect = new Rectangle(chicken.Rect.X, obstacles[j].Rect.Y - chicken.Rect.Height, chicken.Rect.Width, chicken.Rect.Height);
+
                     chicken.BouncesLeft--;
-                    
+
                     Console.WriteLine("HONK!");
                     Console.Out.Flush();
-                    
+
                     obstacles.RemoveAt(j);
                     break;
                 }

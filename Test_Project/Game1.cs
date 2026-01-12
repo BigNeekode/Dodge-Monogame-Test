@@ -21,6 +21,7 @@ public class Game1 : Game
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private Texture2D _pixel;
+    private SpriteFont _font;
 
     // Game state
     private enum GameState { Playing, GameOver }
@@ -90,8 +91,11 @@ public class Game1 : Game
         _pixel = new Texture2D(GraphicsDevice, 1, 1);
         _pixel.SetData([Color.White]);
         
+        // Load spritefont
+        _font = Content.Load<SpriteFont>("font");
+        
         // Initialize renderer
-        _renderer = new GameRenderer(_spriteBatch, _pixel, _graphics);
+        _renderer = new GameRenderer(_spriteBatch, _pixel, _graphics, _font);
         
         Console.WriteLine("LoadContent finished");
     }

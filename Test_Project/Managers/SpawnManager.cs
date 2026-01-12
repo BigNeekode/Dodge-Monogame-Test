@@ -56,13 +56,16 @@ public class SpawnManager
                 var x = _rand.Next(0, _screenWidth - GameConfig.PowerUpSize);
                 var typeRoll = _rand.NextDouble();
                 PowerType type;
+                // Rubber Chicken is rare — only selected when typeRoll is very high
                 if (typeRoll < 0.4)
                     type = PowerType.Slow;
                 else if (typeRoll < 0.8)
                     type = PowerType.Shield;
-                else
+                else if (typeRoll < 0.96)
                     type = PowerType.ExtraLife;
-                
+                else
+                    type = PowerType.RubberChicken; // ~4% chance
+
                 onPowerUpSpawn(new PowerUp(
                     new Rectangle(x, -30, GameConfig.PowerUpSize, GameConfig.PowerUpSize), 
                     type));
