@@ -42,6 +42,43 @@ namespace Test_Project.Systems
             }
         }
 
+        /// <summary>
+        /// Spawn dash impact particles (directional burst)
+        /// </summary>
+        public void SpawnDashParticles(Vector2 pos, Vector2 direction, int count, System.Random rand)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                float spread = 0.5f;
+                float angle = (float)System.Math.Atan2(direction.Y, direction.X) + ((float)rand.NextDouble() - 0.5f) * spread;
+                float speed = 150f + (float)rand.NextDouble() * 100f;
+                
+                var p = new Particle
+                {
+                    Pos = pos,
+                    Vel = new Vector2((float)System.Math.Cos(angle) * speed, (float)System.Math.Sin(angle) * speed),
+                    Life = 0.3f + (float)rand.NextDouble() * 0.3f,
+                    Col = Color.Lerp(Color.Cyan, Color.White, (float)rand.NextDouble())
+                };
+                _particles.Add(p);
+            }
+        }
+
+        /// <summary>
+        /// Spawn trail particle (single, for bullet trails)
+        /// </summary>
+        public void SpawnTrail(Vector2 pos, Color color)
+        {
+            var p = new Particle
+            {
+                Pos = pos,
+                Vel = Vector2.Zero,
+                Life = 0.15f,
+                Col = color
+            };
+            _particles.Add(p);
+        }
+
         public void Update(float dt)
         {
             for (int i = _particles.Count - 1; i >= 0; i--)

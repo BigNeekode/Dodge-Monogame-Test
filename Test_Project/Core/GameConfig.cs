@@ -6,8 +6,8 @@ namespace Test_Project.Core;
 public static class GameConfig
 {
     // Window settings
-    public const int WindowWidth = 800;
-    public const int WindowHeight = 600;
+    public const int WindowWidth = 1366;
+    public const int WindowHeight = 728;
 
     // Player settings
     public const int PlayerWidth = 30;
@@ -56,4 +56,30 @@ public static class GameConfig
     public const float FontScaleMedium = 0.7f;
     public const float FontScaleLarge = 0.8f;
     public const float FontScaleCombo = 1.2f;
+
+    // Juice/Polish settings
+    public static class Juice
+    {
+        public const bool EnableSlowMotionOnKill = true;
+        public const float SlowMotionDuration = 0.08f;
+        public const float SlowMotionTimeScale = 0.3f;
+        
+        public const bool EnableScreenFlash = true;
+        public const float ScreenFlashDuration = 0.1f;
+        
+        public const bool EnableEnhancedParticles = true;
+        public const int KillParticleMultiplier = 3;
+        
+        public const bool EnableZoomPunch = true;
+        public const float ZoomPunchAmount = 0.05f;
+        public const float ZoomPunchDuration = 0.15f;
+        
+        public const bool EnablePopupAnimation = true;
+        public const float PopupBounceScale = 1.3f;
+        
+        public const bool EnableDashParticles = true;
+        public const int DashParticleCount = 8;
+        
+        public const float KillShakeTrauma = 0.3f;
+    }
 }

@@ -66,3 +66,4 @@ C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.pdb
 C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.genruntimeconfig.cache
 C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\ref\Test_Project.dll
 C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Content\font.xnb
+C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Content\sounds.json

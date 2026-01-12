@@ -13,15 +13,21 @@ public class ScorePopup
     public string Text { get; set; }
     public Color Color { get; set; }
     public float Life { get; set; }
+    public float MaxLife { get; set; }
     public Vector2 Velocity { get; set; }
+    public float Scale { get; set; }
+    public bool IsCombo { get; set; }
 
-    public ScorePopup(Vector2 position, string text, Color color)
+    public ScorePopup(Vector2 position, string text, Color color, bool isCombo = false)
     {
         Position = position;
         Text = text;
         Color = color;
         Life = 1.5f;
+        MaxLife = 1.5f;
         Velocity = new Vector2(0, -50f);
+        Scale = 1f;
+        IsCombo = isCombo;
     }
 
     public void Update(float deltaTime)
@@ -29,6 +35,32 @@ public class ScorePopup
         Position += Velocity * deltaTime;
         Life -= deltaTime;
         Velocity = new Vector2(Velocity.X, Velocity.Y + 20f * deltaTime); // slight gravity
+        
+        // Bounce animation for combo popups
+        if (IsCombo)
+        {
+            float t = 1f - (Life / MaxLife);
+            if (t < 0.2f)
+            {
+                // Bounce in: ease out elastic
+                float bounce = t / 0.2f;
+                Scale = 0.5f + bounce * 1.3f;
+                if (bounce > 0.8f)
+                {
+                    Scale += (float)Math.Sin(bounce * Math.PI * 3) * 0.15f;
+                }
+            }
+            else
+            {
+                Scale = 1.3f;
+            }
+        }
+        else
+        {
+            // Simple scale pulse
+            float t = Life / MaxLife;
+            Scale = 0.7f + (t * 0.3f);
+        }
     }
 }
 
@@ -48,7 +80,7 @@ public class ScorePopupSystem
     {
         var text = multiplier > 1 ? $"+{score} x{multiplier}!" : $"+{score}";
         var color = multiplier > 1 ? Color.Yellow : Color.White;
-        _popups.Add(new ScorePopup(position, text, color));
+        _popups.Add(new ScorePopup(position, text, color, false));
     }
 
     /// <summary>
@@ -57,7 +89,7 @@ public class ScorePopupSystem
     public void SpawnComboPopup(Vector2 position, int combo)
     {
         var text = $"{combo} COMBO!";
-        _popups.Add(new ScorePopup(position, text, Color.Orange));
+        _popups.Add(new ScorePopup(position, text, Color.Orange, true));
     }
 
     /// <summary>

@@ -46,10 +46,20 @@ public class Game1 : Game
     private readonly ComboSystem _comboSystem = new();
     private readonly ScorePopupSystem _scorePopupSystem = new();
     private readonly ScreenShake _screenShake = new();
+    private readonly TimeScale _timeScale = new();
+    private readonly ScreenFlash _screenFlash = new();
 
     // Shared dependencies
     private readonly Random _rand = new();
     private KeyboardState _prevKeyboard;
+
+    // Sound & tone debug
+    private SoundService _soundService;
+    private bool _toneDebugMode = false;
+    private float _toneFreq = 440f;
+    private Waveform _toneWave = Waveform.Sine;
+    private bool _toneVibrato = false;
+    private bool _toneBitCrush = false;
 
     public Game1()
     {
@@ -70,7 +80,32 @@ public class Game1 : Game
         // Initialize managers
         var highScoreService = new HighScoreService("highscore.txt");
         _scoreManager = new ScoreManager(highScoreService);
-        _collisionManager = new CollisionManager(_rand, _particleSystem);
+        _soundService = new SoundService();
+        // Load sound presets (if available)
+        string[] candidates = new[] {
+            System.IO.Path.Combine(Content.RootDirectory, "sounds.json"),
+            "sounds.json",
+            System.IO.Path.Combine(AppContext.BaseDirectory, "Content", "sounds.json"),
+            System.IO.Path.Combine(AppContext.BaseDirectory, "sounds.json")
+        };
+        SoundBank bank = null;
+        foreach (var p in candidates)
+        {
+            if (System.IO.File.Exists(p))
+            {
+                Console.WriteLine($"Loading sound presets from: {p}");
+                bank = SoundBank.LoadFromFile(p);
+                break;
+            }
+        }
+        if (bank == null)
+        {
+            Console.WriteLine("No sound preset file found. Continuing without presets.");
+            bank = new SoundBank();
+        }
+        _soundService.RegisterBank(bank);
+
+        _collisionManager = new CollisionManager(_rand, _particleSystem, _soundService);
         _powerUpManager = new PowerUpManager();
         _spawnManager = new SpawnManager(_rand, GameConfig.WindowWidth);
         
@@ -136,9 +171,16 @@ public class Game1 : Game
 
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+        // Update time scale
+        _timeScale.Update(deltaTime);
+        var scaledDelta = _timeScale.GetScaledDelta(deltaTime);
+        
+        // Update screen flash
+        _screenFlash.Update(deltaTime);
+
         if (_state == GameState.Playing)
         {
-            UpdatePlaying(keyboard, deltaTime);
+            UpdatePlaying(keyboard, scaledDelta);
         }
         else if (_state == GameState.GameOver)
         {
@@ -179,6 +221,7 @@ public class Game1 : Game
                     projectileRect, 
                     new Vector2(velocityX, velocityY), 
                     GameConfig.RubberChickenBounces));
+                _soundService?.PlayPreset("chicken_shoot");
                 Console.WriteLine("HONK!");
                 Console.Out.Flush();
             }
@@ -186,27 +229,51 @@ public class Game1 : Game
             {
                 // Shoot regular bullet
                 _bullets.Add(new Bullet(projectileRect, (int)GameConfig.BulletSpeed));
+                _soundService?.PlayPreset("gun");
             }
         }
 
         // Handle dashing
         if (_player.TryDash(keyboard))
         {
-            _particleSystem.SpawnParticles(
-                new Vector2(_player.Rect.Center.X, _player.Rect.Center.Y),
-                8, Color.Cyan, _rand);
+            var playerCenter = new Vector2(_player.Rect.Center.X, _player.Rect.Center.Y);
+            
+            // Spawn dash particles with direction (if juice enabled)
+            if (GameConfig.Juice.EnableDashParticles)
+            {
+                var dashDir = new Vector2(
+                    keyboard.IsKeyDown(Keys.Right) || keyboard.IsKeyDown(Keys.D) ? 1 :
+                    keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.A) ? -1 : 0,
+                    keyboard.IsKeyDown(Keys.Up) ? -1 :
+                    keyboard.IsKeyDown(Keys.Down) ? 1 : 0
+                );
+                if (dashDir.LengthSquared() > 0)
+                {
+                    dashDir.Normalize();
+                    _particleSystem.SpawnDashParticles(playerCenter, -dashDir, GameConfig.Juice.DashParticleCount, _rand);
+                }
+                else
+                {
+                    _particleSystem.SpawnParticles(playerCenter, 8, Color.Cyan, _rand);
+                }
+            }
+            else
+            {
+                _particleSystem.SpawnParticles(playerCenter, 8, Color.Cyan, _rand);
+            }
+            
+            _soundService?.PlayPreset("dash");
         }
 
-        // Update spawning
+        // Update spawning (play small sound on spawn)
         _spawnManager.Update(
             deltaTime, 
             _scoreManager.TimeScore,
-            obstacle => _obstacles.Add(obstacle),
-            powerUp => _powerUps.Add(powerUp)
+            obstacle => { _obstacles.Add(obstacle); _soundService?.PlayPreset("spawn_obstacle"); },
+            powerUp => { _powerUps.Add(powerUp); _soundService?.PlayPreset("spawn_powerup"); }
         );
 
-        // Update all entities
-        UpdateEntities(deltaTime);
+        // (inlined entity updates are handled below)
 
         // Handle all collisions
         HandleCollisions();
@@ -226,21 +293,46 @@ public class Game1 : Game
         if (keyboard.IsKeyDown(Keys.G) && !_prevKeyboard.IsKeyDown(Keys.G))
         {
             _renderer.ToggleDiscoMode();
+            _soundService?.PlayPreset("disco_toggle");
         }
-        _renderer.Update(deltaTime);
-    }
 
-    /// <summary>
-    /// Updates all game entities
-    /// </summary>
-    private void UpdateEntities(float deltaTime)
-    {
-        var obstacleSpeed = _scoreManager.GetObstacleSpeed(_powerUpManager.SpeedMultiplier);
+        // Tone debug mode toggle (press T). When active, use Up/Down to change freq, W to cycle waveform,
+        // V to toggle vibrato, C to toggle bitcrush, K to play current tone
+        if (keyboard.IsKeyDown(Keys.T) && !_prevKeyboard.IsKeyDown(Keys.T))
+        {
+            _toneDebugMode = !_toneDebugMode;
+        }
+        if (_toneDebugMode)
+        {
+            if (keyboard.IsKeyDown(Keys.Up) && !_prevKeyboard.IsKeyDown(Keys.Up)) _toneFreq += 10f;
+            if (keyboard.IsKeyDown(Keys.Down) && !_prevKeyboard.IsKeyDown(Keys.Down)) _toneFreq = MathF.Max(20f, _toneFreq - 10f);
+            if (keyboard.IsKeyDown(Keys.W) && !_prevKeyboard.IsKeyDown(Keys.W)) _toneWave = (Waveform)(((int)_toneWave + 1) % Enum.GetValues(typeof(Waveform)).Length);
+            if (keyboard.IsKeyDown(Keys.V) && !_prevKeyboard.IsKeyDown(Keys.V)) _toneVibrato = !_toneVibrato;
+            if (keyboard.IsKeyDown(Keys.C) && !_prevKeyboard.IsKeyDown(Keys.C)) _toneBitCrush = !_toneBitCrush;
+            if (keyboard.IsKeyDown(Keys.K) && !_prevKeyboard.IsKeyDown(Keys.K))
+            {
+                _soundService?.PlayBeep(_toneFreq, 0.25f, 0.7f, _toneWave, _toneVibrato ? 5f : 0f, _toneVibrato ? 0.03f : 0f, new Envelope(0.01f, 0.06f, 0.8f, 0.05f), _toneBitCrush);
+            }
+        }
 
-        // Update bullets (remove if off-screen)
+            // Quick audition keys (not part of the tone debug)
+            if (keyboard.IsKeyDown(Keys.P) && !_prevKeyboard.IsKeyDown(Keys.P)) _soundService?.PlayPreset("powerup");
+            if (keyboard.IsKeyDown(Keys.O) && !_prevKeyboard.IsKeyDown(Keys.O)) _soundService?.PlayPreset("coin");
+            if (keyboard.IsKeyDown(Keys.I) && !_prevKeyboard.IsKeyDown(Keys.I)) _soundService?.PlayPreset("explosion");
+        
+        // Update bullets (remove if off-screen, spawn trails)
         for (int i = _bullets.Count - 1; i >= 0; i--)
         {
             _bullets[i].Update(deltaTime);
+            
+            // Spawn bullet trail particles for juice
+            if (GameConfig.Juice.EnableEnhancedParticles && _rand.NextDouble() < 0.5)
+            {
+                _particleSystem.SpawnTrail(
+                    new Vector2(_bullets[i].Rect.Center.X, _bullets[i].Rect.Center.Y),
+                    Color.White * 0.6f);
+            }
+            
             if (_bullets[i].Rect.Y + _bullets[i].Rect.Height < 0)
             {
                 _bullets.RemoveAt(i);
@@ -256,6 +348,9 @@ public class Game1 : Game
                 _chickens.RemoveAt(i);
             }
         }
+
+        // Calculate obstacle speed based on score and active power-ups
+        var obstacleSpeed = _scoreManager.GetObstacleSpeed(_powerUpManager.SpeedMultiplier);
 
         // Update obstacles (remove if off-screen)
         for (int i = _obstacles.Count - 1; i >= 0; i--)
@@ -299,6 +394,23 @@ public class Game1 : Game
             // Add to combo
             _comboSystem.AddKill();
             
+            // Juice effects on kill
+            if (GameConfig.Juice.EnableSlowMotionOnKill)
+            {
+                _timeScale.ApplySlowMotion(GameConfig.Juice.SlowMotionTimeScale, GameConfig.Juice.SlowMotionDuration);
+            }
+            if (GameConfig.Juice.EnableScreenFlash)
+            {
+                _screenFlash.FlashWhite(GameConfig.Juice.ScreenFlashDuration);
+            }
+            if (GameConfig.Juice.EnableZoomPunch)
+            {
+                _renderer.TriggerZoomPunch();
+            }
+            
+            // Enhanced screen shake
+            _screenShake.AddTrauma(GameConfig.Juice.KillShakeTrauma);
+            
             // Calculate score with multiplier
             var multiplier = _comboSystem.ComboMultiplier;
             var scoreGained = pointsEarned * multiplier;
@@ -310,10 +422,8 @@ public class Game1 : Game
                 _scorePopupSystem.SpawnComboPopup(
                     new Vector2(GameConfig.WindowWidth / 2, GameConfig.WindowHeight / 3),
                     _comboSystem.ComboCount);
+                _soundService?.PlayPreset("combo");
             }
-            
-            // Small screen shake on hit
-            _screenShake.AddTrauma(0.2f);
         }
 
         // Chicken-obstacle collisions
@@ -327,6 +437,23 @@ public class Game1 : Game
             _particleSystem.SpawnParticles(
                 new Vector2(_player.Rect.Center.X, _player.Rect.Center.Y),
                 15, Color.Gold, _rand);
+
+            // Play appropriate sound
+            switch (collectedPowerUp.Value)
+            {
+                case PowerType.Slow:
+                    _soundService?.PlayPreset("powerup");
+                    break;
+                case PowerType.Shield:
+                    _soundService?.PlayPreset("shield");
+                    break;
+                case PowerType.ExtraLife:
+                    _soundService?.PlayPreset("extra_life");
+                    break;
+                case PowerType.RubberChicken:
+                    _soundService?.PlayPreset("rubber_chicken_pick");
+                    break;
+            }
         }
 
         // Player-obstacle collisions (skip if dashing)
@@ -339,14 +466,17 @@ public class Game1 : Game
                 onShieldHit: () => 
                 { 
                     _screenShake.AddTrauma(0.3f);
+                    _soundService?.PlayPreset("shield_hit");
                 },
                 onPlayerHit: () =>
                 {
                     _screenShake.AddTrauma(0.6f);
                     _comboSystem.Reset(); // Reset combo on hit
+                    _soundService?.PlayPreset("player_hit");
                     
                     if (!_player.TakeDamage())
                     {
+                        _soundService?.PlayPreset("game_over");
                         _state = GameState.GameOver;
                         _scoreManager.UpdateHighScore();
                     }
@@ -383,6 +513,8 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
+        var debugInfo = _toneDebugMode ? $"TONE: {_toneFreq} Hz  Wave:{_toneWave}  Vib:{_toneVibrato}  Crush:{_toneBitCrush}" : null;
+
         _renderer.Draw(
             _player,
             _bullets,
@@ -394,7 +526,9 @@ public class Game1 : Game
             _comboSystem,
             _scorePopupSystem,
             _screenShake,
-            _state == GameState.GameOver
+            _screenFlash,
+            _state == GameState.GameOver,
+            debugInfo
         );
 
         base.Draw(gameTime);

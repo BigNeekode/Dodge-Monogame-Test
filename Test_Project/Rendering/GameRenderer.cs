@@ -22,6 +22,10 @@ public class GameRenderer
     
     private float _discoTimer;
     private bool _discoActive;
+    
+    // Zoom punch effect
+    private float _zoomPunch;
+    private float _zoomPunchTimer;
 
     public GameRenderer(SpriteBatch spriteBatch, Texture2D pixel, GraphicsDeviceManager graphics, SpriteFont font)
     {
@@ -64,6 +68,30 @@ public class GameRenderer
         {
             _discoTimer += deltaTime * GameConfig.DiscoSpeedMultiplier;
         }
+        
+        // Update zoom punch
+        if (_zoomPunchTimer > 0)
+        {
+            _zoomPunchTimer -= deltaTime;
+            float t = _zoomPunchTimer / GameConfig.Juice.ZoomPunchDuration;
+            _zoomPunch = t * t * GameConfig.Juice.ZoomPunchAmount; // Ease out quad
+        }
+        else
+        {
+            _zoomPunch = 0;
+        }
+    }
+
+    /// <summary>
+    /// Trigger zoom punch effect
+    /// </summary>
+    public void TriggerZoomPunch()
+    {
+        if (GameConfig.Juice.EnableZoomPunch)
+        {
+            _zoomPunch = GameConfig.Juice.ZoomPunchAmount;
+            _zoomPunchTimer = GameConfig.Juice.ZoomPunchDuration;
+        }
     }
 
     /// <summary>
@@ -80,15 +108,18 @@ public class GameRenderer
         Systems.ComboSystem comboSystem,
         Systems.ScorePopupSystem scorePopupSystem,
         Systems.ScreenShake screenShake,
-        bool isGameOver)
+        Systems.ScreenFlash screenFlash,
+        bool isGameOver, 
+        string debugInfo = null)
     {
         // Calculate disco colors
         var (bg, playerCol, obstacleCol, floorCol) = GetColors(powerUpManager.ShieldActive, player.IsDashing);
 
         _graphics.GraphicsDevice.Clear(bg);
 
-        // Apply screen shake offset
-        var transform = Matrix.CreateTranslation(screenShake.Offset.X, screenShake.Offset.Y, 0);
+        // Apply screen shake offset + zoom punch
+        float zoom = 1f + _zoomPunch;
+        var transform = Matrix.CreateScale(zoom) * Matrix.CreateTranslation(screenShake.Offset.X, screenShake.Offset.Y, 0);
         _spriteBatch.Begin(transformMatrix: transform);
 
         // Draw player with dash effect
@@ -140,11 +171,14 @@ public class GameRenderer
         {
             var alpha = Math.Clamp(popup.Life / 1.5f, 0f, 1f);
             var textMeasure = _font.MeasureString(popup.Text);
-            var pos = new Vector2(popup.Position.X - textMeasure.X / 2, popup.Position.Y);
+            var origin = textMeasure / 2f;
             
-            // Scale the text
-            var scale = popup.Text.Contains("COMBO") ? GameConfig.FontScaleCombo : GameConfig.FontScaleLarge;
-            _spriteBatch.DrawString(_font, popup.Text, pos, popup.Color * alpha, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+            // Apply scale animation (especially for combo popups)
+            float animScale = GameConfig.Juice.EnablePopupAnimation ? popup.Scale : 1f;
+            var baseScale = popup.Text.Contains("COMBO") ? GameConfig.FontScaleCombo : GameConfig.FontScaleLarge;
+            var finalScale = baseScale * animScale;
+            
+            _spriteBatch.DrawString(_font, popup.Text, popup.Position, popup.Color * alpha, 0f, origin, finalScale, SpriteEffects.None, 0f);
         }
 
         // Draw HUD
@@ -162,8 +196,22 @@ public class GameRenderer
             DrawGameOverOverlay();
         }
 
-        _spriteBatch.End();
-    }
+        // Draw debug info (top-right)
+        if (!string.IsNullOrEmpty(debugInfo))
+        {
+            var size = _font.MeasureString(debugInfo);
+            var pos = new Vector2(_graphics.PreferredBackBufferWidth - 10 - size.X, 10);
+            _spriteBatch.DrawString(_font, debugInfo, pos, Color.White, 0f, Vector2.Zero, GameConfig.FontScaleSmall, SpriteEffects.None, 0f);
+        }
+
+        _spriteBatch.End();        
+        // Draw screen flash (last, on top of everything)
+        if (screenFlash.IsFlashing)
+        {
+            _spriteBatch.Begin();
+            screenFlash.Draw(_spriteBatch, _pixel, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+            _spriteBatch.End();
+        }    }
 
     /// <summary>
     /// Draws the HUD (lives, shield bar, combo, dash, power-ups)

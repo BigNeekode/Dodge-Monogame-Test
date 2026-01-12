@@ -1,0 +1,156 @@
+{
+  "gun": {
+    "Waveform": "Square",
+    "Frequency": 1000.0,
+    "FrequencyVariance": 60.0,
+    "Duration": 0.06,
+    "Volume": 0.85,
+    "Envelope": { "Attack": 0.001, "Decay": 0.02, "Sustain": 0.15, "Release": 0.01 },
+    "BitCrush": true
+  },
+  "hit": {
+    "Waveform": "Square",
+    "Frequency": 1200.0,
+    "FrequencyVariance": 80.0,
+    "Duration": 0.06,
+    "Volume": 0.6,
+    "Envelope": { "Attack": 0.001, "Decay": 0.03, "Sustain": 0.12, "Release": 0.02 }
+  },
+  "chicken_shoot": {
+    "Waveform": "Triangle",
+    "Frequency": 360.0,
+    "Duration": 0.14,
+    "Volume": 0.78,
+    "VibratoRate": 5.0,
+    "VibratoDepth": 0.035,
+    "Envelope": { "Attack": 0.01, "Decay": 0.04, "Sustain": 0.6, "Release": 0.04 }
+  },
+  "chicken_honk": {
+    "Waveform": "Triangle",
+    "Frequency": 220.0,
+    "Duration": 0.16,
+    "Volume": 0.66,
+    "VibratoRate": 6.0,
+    "VibratoDepth": 0.04,
+    "Envelope": { "Attack": 0.01, "Decay": 0.06, "Sustain": 0.7, "Release": 0.06 }
+  },
+
+  "powerup": {
+    "Waveform": "Sawtooth",
+    "Frequency": 560.0,
+    "Duration": 0.24,
+    "Volume": 0.78,
+    "Envelope": { "Attack": 0.0, "Decay": 0.06, "Sustain": 0.6, "Release": 0.1 },
+    "Layers": [
+      { "Waveform": "Sine", "Frequency": 880.0, "Duration": 0.18, "Volume": 0.36, "Envelope": { "Attack": 0.0, "Decay": 0.05, "Sustain": 0.4, "Release": 0.04 } }
+    ]
+  },
+
+  "coin": {
+    "Waveform": "Sine",
+    "Frequency": 1320.0,
+    "Duration": 0.12,
+    "Volume": 0.6,
+    "Envelope": { "Attack": 0.0, "Decay": 0.04, "Sustain": 0.45, "Release": 0.04 }
+  },
+
+  "extra_life": {
+    "Waveform": "Square",
+    "Frequency": 720.0,
+    "Duration": 0.32,
+    "Volume": 0.8,
+    "Envelope": { "Attack": 0.0, "Decay": 0.05, "Sustain": 0.55, "Release": 0.1 }
+  },
+
+  "explosion": {
+    "Waveform": "Noise",
+    "Frequency": 80.0,
+    "Duration": 0.36,
+    "Volume": 0.95,
+    "Envelope": { "Attack": 0.0, "Decay": 0.1, "Sustain": 0.18, "Release": 0.16 },
+    "BitCrush": true
+  },
+
+  "combo": {
+    "Waveform": "Triangle",
+    "Frequency": 440.0,
+    "Duration": 0.22,
+    "Volume": 0.82,
+    "Envelope": { "Attack": 0.01, "Decay": 0.05, "Sustain": 0.7, "Release": 0.08 },
+    "Layers": [
+      { "Waveform": "Sine", "Frequency": 880.0, "Duration": 0.22, "Volume": 0.36, "Envelope": { "Attack": 0.0, "Decay": 0.04, "Sustain": 0.45, "Release": 0.05 } }
+    ]
+  },
+
+  "dash": {
+    "Waveform": "Square",
+    "Frequency": 480.0,
+    "Duration": 0.07,
+    "Volume": 0.75,
+    "Envelope": { "Attack": 0.001, "Decay": 0.03, "Sustain": 0.2, "Release": 0.02 }
+  },
+
+  "shield": {
+    "Waveform": "Sine",
+    "Frequency": 320.0,
+    "Duration": 0.26,
+    "Volume": 0.7,
+    "Envelope": { "Attack": 0.0, "Decay": 0.06, "Sustain": 0.6, "Release": 0.12 }
+  },
+
+  "shield_hit": {
+    "Waveform": "Square",
+    "Frequency": 320.0,
+    "Duration": 0.12,
+    "Volume": 0.7,
+    "Envelope": { "Attack": 0.001, "Decay": 0.04, "Sustain": 0.3, "Release": 0.04 }
+  },
+
+  "spawn_obstacle": {
+    "Waveform": "Sine",
+    "Frequency": 220.0,
+    "Duration": 0.08,
+    "Volume": 0.45,
+    "Envelope": { "Attack": 0.0, "Decay": 0.02, "Sustain": 0.3, "Release": 0.03 }
+  },
+
+  "spawn_powerup": {
+    "Waveform": "Sine",
+    "Frequency": 660.0,
+    "Duration": 0.12,
+    "Volume": 0.6,
+    "Envelope": { "Attack": 0.0, "Decay": 0.04, "Sustain": 0.4, "Release": 0.04 }
+  },
+
+  "player_hit": {
+    "Waveform": "Square",
+    "Frequency": 220.0,
+    "Duration": 0.16,
+    "Volume": 0.8,
+    "Envelope": { "Attack": 0.0, "Decay": 0.06, "Sustain": 0.2, "Release": 0.06 }
+  },
+
+  "game_over": {
+    "Waveform": "Triangle",
+    "Frequency": 260.0,
+    "Duration": 0.9,
+    "Volume": 0.9,
+    "Envelope": { "Attack": 0.02, "Decay": 0.2, "Sustain": 0.0, "Release": 0.2 }
+  },
+
+  "rubber_chicken_pick": {
+    "Waveform": "Triangle",
+    "Frequency": 300.0,
+    "Duration": 0.18,
+    "Volume": 0.75,
+    "Envelope": { "Attack": 0.01, "Decay": 0.04, "Sustain": 0.6, "Release": 0.05 }
+  },
+
+  "disco_toggle": {
+    "Waveform": "Square",
+    "Frequency": 600.0,
+    "Duration": 0.08,
+    "Volume": 0.72,
+    "Envelope": { "Attack": 0.001, "Decay": 0.02, "Sustain": 0.35, "Release": 0.03 }
+  }
+}

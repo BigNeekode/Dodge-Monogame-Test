@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Test_Project.Core;
 using Test_Project.Entities;
 using Test_Project.Systems;
+using Test_Project.Services;
 
 namespace Test_Project.Managers;
 
@@ -13,11 +15,13 @@ public class CollisionManager
 {
     private readonly Random _rand;
     private readonly ParticleSystem _particleSystem;
+    private readonly SoundService _soundService;
 
-    public CollisionManager(Random random, ParticleSystem particleSystem)
+    public CollisionManager(Random random, ParticleSystem particleSystem, SoundService soundService)
     {
         _rand = random;
         _particleSystem = particleSystem;
+        _soundService = soundService;
     }
 
     /// <summary>
@@ -35,12 +39,19 @@ public class CollisionManager
             {
                 if (bullet.Rect.Intersects(obstacles[j].Rect))
                 {
-                    // Spawn confetti at impact point
+                    // Spawn confetti at impact point (enhanced for juice)
+                    var particleCount = GameConfig.Juice.EnableEnhancedParticles 
+                        ? 18 * GameConfig.Juice.KillParticleMultiplier 
+                        : 18;
+                    
                     _particleSystem.SpawnConfetti(
                         new Vector2(bullet.Rect.X + bullet.Rect.Width / 2f, 
                                   bullet.Rect.Y + bullet.Rect.Height / 2f), 
-                        18, _rand);
-                    
+                        particleCount, _rand);
+
+                    // Play hit preset if available
+                    _soundService?.PlayPreset("hit");
+
                     obstacles.RemoveAt(j);
                     bullets.RemoveAt(i);
                     pointsEarned++;
@@ -80,6 +91,9 @@ public class CollisionManager
 
                     Console.WriteLine("HONK!");
                     Console.Out.Flush();
+
+                    // Play chicken honk preset if available
+                    _soundService?.PlayPreset("chicken_honk");
 
                     obstacles.RemoveAt(j);
                     break;
