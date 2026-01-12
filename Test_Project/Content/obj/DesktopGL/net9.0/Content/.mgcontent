@@ -4,7 +4,7 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Dodge-Monogame-Test/Test_Project/Content/font.spritefont</File>
+    <File>D:/Project Gabut/Project Mono/Test_Project/Test_Project/Content/font.spritefont</File>
   </SourceFiles>
   <DestFiles>
     <File xsi:nil="true" />

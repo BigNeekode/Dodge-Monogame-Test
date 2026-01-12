@@ -6,8 +6,8 @@ namespace Test_Project.Core;
 public static class GameConfig
 {
     // Window settings
-    public const int WindowWidth = 1366;
-    public const int WindowHeight = 728;
+    public const int WindowWidth = 600;
+    public const int WindowHeight = 1000;
 
     // Player settings
     public const int PlayerWidth = 30;
@@ -41,12 +41,21 @@ public static class GameConfig
     public const float ShieldDuration = 6f;
     public const float SlowDuration = 5f;
     public const float SlowMultiplier = 0.6f;
-    public const float RubberChickenDuration = 10f;
-    public const int RubberChickenBounces = 4;
+    public const float ShotgunDuration = 10f;
+    public const int ShotgunPellets = 6;
+    public const float ShotgunSpreadDegrees = 35f; // total cone angle in degrees
+    public const float ShotgunJitterDegrees = 4f; // per-pellet random jitter in degrees
+    public const float ShotgunRecoilTrauma = 0.12f; // screen shake trauma when firing
+    public const int ShotgunParticleCount = 8; // muzzle particles
 
     // Disco mode settings
     public const float DiscoSpeedMultiplier = 0.3f; // Much slower for epilepsy safety
     public const float DiscoColorTransitionSpeed = 0.5f; // Smooth color transitions
+
+    // Dynamic difficulty tuning (per minute)
+    public const float DifficultySpawnRatePerMinute = 0.08f; // spawn rate increase per minute (adds to multiplier)
+    public const float DifficultySpeedPerMinute = 0.05f; // obstacle speed increase per minute
+    public const float DifficultySmoothing = 3f; // seconds to smooth towards target multipliers
 
     // Scoring
     public const int PointsPerKill = 10;

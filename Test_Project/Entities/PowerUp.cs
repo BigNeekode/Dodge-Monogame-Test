@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 
 namespace Test_Project.Entities
 {
-    public enum PowerType { Slow, Shield, ExtraLife, RubberChicken }
+    public enum PowerType { Slow, Shield, ExtraLife, Shotgun }
 
     public class PowerUp
     {

@@ -31,7 +31,7 @@ public class Game1 : Game
     private readonly List<Bullet> _bullets = [];
     private readonly List<Obstacle> _obstacles = [];
     private readonly List<PowerUp> _powerUps = [];
-    private readonly List<RubberChicken> _chickens = [];
+
 
     // Managers
     private Player _player;
@@ -40,6 +40,7 @@ public class Game1 : Game
     private PowerUpManager _powerUpManager;
     private ScoreManager _scoreManager;
     private GameRenderer _renderer;
+    private DifficultyManager _difficultyManager;
     
     // Systems
     private readonly ParticleSystem _particleSystem = new();
@@ -48,6 +49,9 @@ public class Game1 : Game
     private readonly ScreenShake _screenShake = new();
     private readonly TimeScale _timeScale = new();
     private readonly ScreenFlash _screenFlash = new();
+
+    // Dev tools
+    private DevHud _devHud;
 
     // Shared dependencies
     private readonly Random _rand = new();
@@ -107,7 +111,9 @@ public class Game1 : Game
 
         _collisionManager = new CollisionManager(_rand, _particleSystem, _soundService);
         _powerUpManager = new PowerUpManager();
-        _spawnManager = new SpawnManager(_rand, GameConfig.WindowWidth);
+        _difficultyManager = new DifficultyManager();
+        _spawnManager = new SpawnManager(_rand, GameConfig.WindowWidth, _difficultyManager);
+        _devHud = new DevHud();
         
         // Initialize player
         _player = new Player(
@@ -146,7 +152,6 @@ public class Game1 : Game
         _bullets.Clear();
         _obstacles.Clear();
         _powerUps.Clear();
-        _chickens.Clear();
         _particleSystem.Clear();
         _scorePopupSystem.Clear();
         _comboSystem.Reset();
@@ -160,6 +165,7 @@ public class Game1 : Game
         _scoreManager.Reset();
         _powerUpManager.Reset();
         _spawnManager.Reset();
+        _difficultyManager.Reset();
         _renderer.Reset();
     }
 
@@ -177,6 +183,9 @@ public class Game1 : Game
         
         // Update screen flash
         _screenFlash.Update(deltaTime);
+
+        // Dev HUD input (allows toggling and adjustments)
+        _devHud?.Update(keyboard, _prevKeyboard, _difficultyManager);
 
         if (_state == GameState.Playing)
         {
@@ -212,23 +221,39 @@ public class Game1 : Game
         {
             var projectileRect = _player.GetProjectileSpawnRect();
             
-            if (_powerUpManager.RubberChickenActive)
+            if (_powerUpManager.ShotgunActive)
             {
-                // Launch rubber chicken
-                var velocityX = (float)(_rand.NextDouble() * 200 - 100);
-                var velocityY = -300f;
-                _chickens.Add(new RubberChicken(
-                    projectileRect, 
-                    new Vector2(velocityX, velocityY), 
-                    GameConfig.RubberChickenBounces));
-                _soundService?.PlayPreset("chicken_shoot");
-                Console.WriteLine("HONK!");
-                Console.Out.Flush();
+                // Shoot shotgun: spawn multiple pellets in a cone shape upwards with a little jitter for realism
+                int pellets = GameConfig.ShotgunPellets;
+                float spreadDeg = GameConfig.ShotgunSpreadDegrees;
+                float spreadRad = MathF.PI * spreadDeg / 180f;
+                float center = -MathF.PI / 2f; // pointing up
+                float jitterDeg = GameConfig.ShotgunJitterDegrees;
+                float jitterRad = MathF.PI * jitterDeg / 180f;
+
+                for (int p = 0; p < pellets; p++)
+                {
+                    float t = pellets == 1 ? 0.5f : (float)p / (pellets - 1);
+                    float angle = center - spreadRad / 2f + t * spreadRad;
+                    // per-pellet jitter
+                    var jitter = (float)(_rand.NextDouble() * jitterRad - jitterRad / 2f);
+                    angle += jitter;
+                    var vel = new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * GameConfig.BulletSpeed;
+                    // Spawn pellet at player's projectile rect center
+                    var r = new Rectangle(projectileRect.X, projectileRect.Y, projectileRect.Width, projectileRect.Height);
+                    _bullets.Add(new Bullet(r, vel));
+                }
+
+                // Muzzle particles and screen shake for feel
+                _particleSystem.SpawnParticles(new Vector2(projectileRect.Center.X, projectileRect.Center.Y), GameConfig.ShotgunParticleCount, Color.OrangeRed, _rand);
+                _screenShake.AddTrauma(GameConfig.ShotgunRecoilTrauma);
+                _soundService?.PlayPreset("shotgun");
             }
             else
             {
-                // Shoot regular bullet
-                _bullets.Add(new Bullet(projectileRect, (int)GameConfig.BulletSpeed));
+                // Shoot regular bullet (straight up)
+                var vel = new Vector2(0f, -GameConfig.BulletSpeed);
+                _bullets.Add(new Bullet(projectileRect, vel));
                 _soundService?.PlayPreset("gun");
             }
         }
@@ -239,33 +264,34 @@ public class Game1 : Game
             var playerCenter = new Vector2(_player.Rect.Center.X, _player.Rect.Center.Y);
             
             // Spawn dash particles with direction (if juice enabled)
-            if (GameConfig.Juice.EnableDashParticles)
             {
-                var dashDir = new Vector2(
-                    keyboard.IsKeyDown(Keys.Right) || keyboard.IsKeyDown(Keys.D) ? 1 :
-                    keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.A) ? -1 : 0,
-                    keyboard.IsKeyDown(Keys.Up) ? -1 :
-                    keyboard.IsKeyDown(Keys.Down) ? 1 : 0
-                );
-                if (dashDir.LengthSquared() > 0)
+                var spawned = false;
+                if (GameConfig.Juice.EnableDashParticles)
                 {
-                    dashDir.Normalize();
-                    _particleSystem.SpawnDashParticles(playerCenter, -dashDir, GameConfig.Juice.DashParticleCount, _rand);
+                    var dashDir = new Vector2(
+                        keyboard.IsKeyDown(Keys.Right) || keyboard.IsKeyDown(Keys.D) ? 1 :
+                        keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.A) ? -1 : 0,
+                        keyboard.IsKeyDown(Keys.Up) ? -1 :
+                        keyboard.IsKeyDown(Keys.Down) ? 1 : 0
+                    );
+                    if (dashDir.LengthSquared() > 0)
+                    {
+                        dashDir.Normalize();
+                        _particleSystem.SpawnDashParticles(playerCenter, -dashDir, GameConfig.Juice.DashParticleCount, _rand);
+                        spawned = true;
+                    }
                 }
-                else
+                if (!spawned)
                 {
                     _particleSystem.SpawnParticles(playerCenter, 8, Color.Cyan, _rand);
                 }
-            }
-            else
-            {
-                _particleSystem.SpawnParticles(playerCenter, 8, Color.Cyan, _rand);
             }
             
             _soundService?.PlayPreset("dash");
         }
 
-        // Update spawning (play small sound on spawn)
+        // Update difficulty first, then spawning (play small sound on spawn)
+        _difficultyManager.Update(deltaTime, _scoreManager.TimeScore);
         _spawnManager.Update(
             deltaTime, 
             _scoreManager.TimeScore,
@@ -333,24 +359,16 @@ public class Game1 : Game
                     Color.White * 0.6f);
             }
             
-            if (_bullets[i].Rect.Y + _bullets[i].Rect.Height < 0)
+            var br = _bullets[i].Rect;
+            if (br.Y + br.Height < 0 || br.X + br.Width < 0 || br.X > GameConfig.WindowWidth)
             {
                 _bullets.RemoveAt(i);
             }
         }
 
-        // Update rubber chickens (remove if off-screen)
-        for (int i = _chickens.Count - 1; i >= 0; i--)
-        {
-            _chickens[i].Update(deltaTime);
-            if (_chickens[i].Rect.Y > GameConfig.WindowHeight + 200)
-            {
-                _chickens.RemoveAt(i);
-            }
-        }
 
         // Calculate obstacle speed based on score and active power-ups
-        var obstacleSpeed = _scoreManager.GetObstacleSpeed(_powerUpManager.SpeedMultiplier);
+        var obstacleSpeed = _scoreManager.GetObstacleSpeed(_powerUpManager.SpeedMultiplier) * _difficultyManager.SpeedMultiplier;
 
         // Update obstacles (remove if off-screen)
         for (int i = _obstacles.Count - 1; i >= 0; i--)
@@ -426,8 +444,6 @@ public class Game1 : Game
             }
         }
 
-        // Chicken-obstacle collisions
-        _collisionManager.CheckChickenCollisions(_chickens, _obstacles);
 
         // Power-up collection
         var collectedPowerUp = _collisionManager.CheckPowerUpCollection(_player.Rect, _powerUps);
@@ -450,8 +466,8 @@ public class Game1 : Game
                 case PowerType.ExtraLife:
                     _soundService?.PlayPreset("extra_life");
                     break;
-                case PowerType.RubberChicken:
-                    _soundService?.PlayPreset("rubber_chicken_pick");
+                case PowerType.Shotgun:
+                    _soundService?.PlayPreset("shotgun_pick");
                     break;
             }
         }
@@ -520,7 +536,6 @@ public class Game1 : Game
             _bullets,
             _obstacles,
             _powerUps,
-            _chickens,
             _particleSystem,
             _powerUpManager,
             _comboSystem,
@@ -530,6 +545,12 @@ public class Game1 : Game
             _state == GameState.GameOver,
             debugInfo
         );
+
+        // Draw dev HUD on top if enabled
+        if (_devHud != null)
+        {
+            _devHud.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth);
+        }
 
         base.Draw(gameTime);
     }

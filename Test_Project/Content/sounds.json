@@ -8,6 +8,18 @@
     "Envelope": { "Attack": 0.001, "Decay": 0.02, "Sustain": 0.15, "Release": 0.01 },
     "BitCrush": true
   },
+  "shotgun": {
+    "Waveform": "Square",
+    "Frequency": 520.0,
+    "Duration": 0.16,
+    "Volume": 0.95,
+    "BitCrush": true,
+    "Envelope": { "Attack": 0.001, "Decay": 0.02, "Sustain": 0.2, "Release": 0.04 },
+    "Layers": [
+      { "Waveform": "Sine", "Frequency": 1100.0, "Duration": 0.12, "Volume": 0.42, "Envelope": { "Attack": 0.0, "Decay": 0.03, "Sustain": 0.12, "Release": 0.02 } }
+    ]
+  },
+
   "hit": {
     "Waveform": "Square",
     "Frequency": 1200.0,
@@ -139,6 +151,13 @@
   },
 
   "rubber_chicken_pick": {
+    "Waveform": "Triangle",
+    "Frequency": 300.0,
+    "Duration": 0.18,
+    "Volume": 0.75,
+    "Envelope": { "Attack": 0.01, "Decay": 0.04, "Sustain": 0.6, "Release": 0.05 }
+  },
+  "shotgun_pick": {
     "Waveform": "Triangle",
     "Frequency": 300.0,
     "Duration": 0.18,

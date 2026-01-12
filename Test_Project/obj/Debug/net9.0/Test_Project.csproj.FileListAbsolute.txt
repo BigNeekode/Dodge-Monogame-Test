@@ -67,3 +67,6 @@ C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\Test_Project.genruntimeconf
 C:\Dodge-Monogame-Test\Test_Project\obj\Debug\net9.0\ref\Test_Project.dll
 C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Content\font.xnb
 C:\Dodge-Monogame-Test\Test_Project\bin\Debug\net9.0\Content\sounds.json
+D:\Project Gabut\Project Mono\Test_Project\Test_Project\bin\Debug\net9.0\Content\sounds.json
+D:\Project Gabut\Project Mono\Test_Project\Test_Project\bin\Debug\net9.0\Content\font.xnb
+D:\Project Gabut\Project Mono\Test_Project\Test_Project\obj\Debug\net9.0\Test_Project.sourcelink.json

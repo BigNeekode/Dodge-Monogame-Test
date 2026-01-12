@@ -9,12 +9,12 @@ namespace Test_Project.Managers;
 public class PowerUpManager
 {
     public bool ShieldActive { get; private set; }
-    public bool RubberChickenActive { get; private set; }
+    public bool ShotgunActive { get; private set; }
     public float SpeedMultiplier { get; private set; }
     
     private float _shieldTimer;
     private float _slowTimer;
-    private float _rubberChickenTimer;
+    private float _shotgunTimer;
 
     public PowerUpManager()
     {
@@ -39,9 +39,9 @@ public class PowerUpManager
             case PowerType.ExtraLife:
                 player.AddLife();
                 break;
-            case PowerType.RubberChicken:
-                RubberChickenActive = true;
-                _rubberChickenTimer = GameConfig.RubberChickenDuration;
+            case PowerType.Shotgun:
+                ShotgunActive = true;
+                _shotgunTimer = GameConfig.ShotgunDuration;
                 break;
         }
     }
@@ -71,13 +71,13 @@ public class PowerUpManager
             }
         }
 
-        // Rubber chicken timer
-        if (RubberChickenActive)
+        // Shotgun timer
+        if (ShotgunActive)
         {
-            _rubberChickenTimer -= deltaTime;
-            if (_rubberChickenTimer <= 0f)
+            _shotgunTimer -= deltaTime;
+            if (_shotgunTimer <= 0f)
             {
-                RubberChickenActive = false;
+                ShotgunActive = false;
             }
         }
     }
@@ -93,10 +93,10 @@ public class PowerUpManager
     public void Reset()
     {
         ShieldActive = false;
-        RubberChickenActive = false;
+        ShotgunActive = false;
         SpeedMultiplier = 1f;
         _shieldTimer = 0f;
         _slowTimer = 0f;
-        _rubberChickenTimer = 0f;
+        _shotgunTimer = 0f;
     }
 }

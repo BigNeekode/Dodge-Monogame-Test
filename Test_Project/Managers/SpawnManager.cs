@@ -16,11 +16,14 @@ public class SpawnManager
     private readonly Random _rand;
     private readonly int _screenWidth;
 
-    public SpawnManager(Random random, int screenWidth)
+    private readonly DifficultyManager _difficultyManager;
+
+    public SpawnManager(Random random, int screenWidth, DifficultyManager difficultyManager)
     {
         _rand = random;
         _screenWidth = screenWidth;
         _spawnInterval = GameConfig.InitialSpawnInterval;
+        _difficultyManager = difficultyManager;
     }
 
     /// <summary>
@@ -30,9 +33,11 @@ public class SpawnManager
         Action<Obstacle> onObstacleSpawn, 
         Action<PowerUp> onPowerUpSpawn)
     {
-        // Update spawn interval based on score
-        _spawnInterval = MathF.Max(GameConfig.MinSpawnInterval, 
+        // Update spawn interval based on score and difficulty multiplier
+        var baseInterval = MathF.Max(GameConfig.MinSpawnInterval,
             GameConfig.InitialSpawnInterval - (score / GameConfig.SpawnIntervalDifficulty));
+        var effectiveInterval = MathF.Max(GameConfig.MinSpawnInterval, baseInterval / _difficultyManager.SpawnMultiplier);
+        _spawnInterval = effectiveInterval;
 
         // Spawn obstacles
         _obstacleSpawnTimer += deltaTime;
@@ -56,15 +61,15 @@ public class SpawnManager
                 var x = _rand.Next(0, _screenWidth - GameConfig.PowerUpSize);
                 var typeRoll = _rand.NextDouble();
                 PowerType type;
-                // Rubber Chicken is rare — only selected when typeRoll is very high
-                if (typeRoll < 0.4)
-                    type = PowerType.Slow;
+                // Shotgun is rare — only selected when typeRoll is very high
+                if (typeRoll < 0.6)
+                    type = PowerType.Shotgun;
                 else if (typeRoll < 0.8)
                     type = PowerType.Shield;
                 else if (typeRoll < 0.96)
                     type = PowerType.ExtraLife;
                 else
-                    type = PowerType.RubberChicken; // ~4% chance
+                    type = PowerType.Slow; // ~4% chance
 
                 onPowerUpSpawn(new PowerUp(
                     new Rectangle(x, -30, GameConfig.PowerUpSize, GameConfig.PowerUpSize), 

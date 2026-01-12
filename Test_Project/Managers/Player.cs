@@ -118,7 +118,7 @@ public class Player
     }
 
     /// <summary>
-    /// Gets the spawn position for bullets/chickens
+    /// Gets the spawn position for bullets/pellets
     /// </summary>
     public Rectangle GetProjectileSpawnRect()
     {

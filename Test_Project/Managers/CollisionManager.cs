@@ -63,50 +63,6 @@ public class CollisionManager
         return pointsEarned;
     }
 
-    /// <summary>
-    /// Checks rubber chicken-obstacle collisions, spawns confetti, and handles bouncing
-    /// </summary>
-    public void CheckChickenCollisions(List<RubberChicken> chickens, List<Obstacle> obstacles)
-    {
-        for (int i = chickens.Count - 1; i >= 0; i--)
-        {
-            var chicken = chickens[i];
-            
-            for (int j = obstacles.Count - 1; j >= 0; j--)
-            {
-                if (chicken.Rect.Intersects(obstacles[j].Rect))
-                {
-                    _particleSystem.SpawnConfetti(
-                        new Vector2(chicken.Rect.Center.X, chicken.Rect.Center.Y), 
-                        24, _rand);
-
-                    // Bounce the chicken and nudge X velocity for variety
-                    var newVelX = chicken.Vel.X + (float)(_rand.NextDouble() * 60.0 - 30.0);
-                    chicken.Vel = new Vector2(newVelX * 0.9f, -Math.Abs(chicken.Vel.Y) * 0.6f);
-
-                    // Reposition chicken above obstacle to avoid sticking
-                    chicken.Rect = new Rectangle(chicken.Rect.X, obstacles[j].Rect.Y - chicken.Rect.Height, chicken.Rect.Width, chicken.Rect.Height);
-
-                    chicken.BouncesLeft--;
-
-                    Console.WriteLine("HONK!");
-                    Console.Out.Flush();
-
-                    // Play chicken honk preset if available
-                    _soundService?.PlayPreset("chicken_honk");
-
-                    obstacles.RemoveAt(j);
-                    break;
-                }
-            }
-            
-            // Remove chickens that ran out of bounces
-            if (i < chickens.Count && chickens[i].BouncesLeft <= 0)
-            {
-                chickens.RemoveAt(i);
-            }
-        }
-    }
 
     /// <summary>
     /// Checks power-up collection and returns the collected power-up type (or null)

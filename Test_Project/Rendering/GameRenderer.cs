@@ -102,7 +102,6 @@ public class GameRenderer
         List<Bullet> bullets,
         List<Obstacle> obstacles,
         List<PowerUp> powerUps,
-        List<RubberChicken> chickens,
         ParticleSystem particleSystem,
         PowerUpManager powerUpManager,
         Systems.ComboSystem comboSystem,
@@ -132,11 +131,6 @@ public class GameRenderer
             _spriteBatch.Draw(_pixel, bullet.Rect, Color.White);
         }
 
-        // Draw rubber chickens
-        foreach (var chicken in chickens)
-        {
-            _spriteBatch.Draw(_pixel, chicken.Rect, Color.Orchid);
-        }
 
         // Draw obstacles
         foreach (var obstacle in obstacles)
@@ -263,9 +257,9 @@ public class GameRenderer
 
         // Draw active power-up status
         var powerUpY = 72f;
-        if (powerUpManager.RubberChickenActive)
+        if (powerUpManager.ShotgunActive)
         {
-            _spriteBatch.DrawString(_font, "RUBBER CHICKEN ACTIVE!", new Vector2(10, powerUpY), Color.Peru, 0f, Vector2.Zero, GameConfig.FontScaleLarge, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(_font, "SHOTGUN ACTIVE!", new Vector2(10, powerUpY), Color.OrangeRed, 0f, Vector2.Zero, GameConfig.FontScaleLarge, SpriteEffects.None, 0f);
             powerUpY += 16f;
         }
         if (powerUpManager.SpeedMultiplier < 1f)
@@ -369,7 +363,7 @@ public class GameRenderer
         PowerType.Slow => Color.CornflowerBlue,
         PowerType.Shield => Color.Gold,
         PowerType.ExtraLife => Color.MediumPurple,
-        PowerType.RubberChicken => Color.Peru,
+        PowerType.Shotgun => Color.OrangeRed,
         _ => Color.White
     };
 

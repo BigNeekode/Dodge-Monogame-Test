@@ -5,17 +5,17 @@ namespace Test_Project.Entities
     public class Bullet
     {
         public Rectangle Rect;
-        public int Speed;
+        public Vector2 Vel;
 
-        public Bullet(Rectangle rect, int speed)
+        public Bullet(Rectangle rect, Vector2 velocity)
         {
             Rect = rect;
-            Speed = speed;
+            Vel = velocity;
         }
 
         public void Update(float dt)
         {
-            Rect = new Rectangle(Rect.X, Rect.Y - (int)(Speed * dt), Rect.Width, Rect.Height);
+            Rect = new Rectangle((int)(Rect.X + Vel.X * dt), (int)(Rect.Y + Vel.Y * dt), Rect.Width, Rect.Height);
         }
     }
 }
